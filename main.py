@@ -1,7 +1,26 @@
-from gdoc import GDoc, LinkChecker
 from datetime import datetime
 from downloader import Downloader
 from dataframe import DataFrame, guess_lost_indexes, extract_links
+import argparse
+import os
+
+
+# TODO: Man, can you document this shit?
+parser = argparse.ArgumentParser(description='Download all link from GDocs comments.')
+parser.add_argument('--link', dest='link', default=None, help='Link or ID of GDoc (does not have an effect yet)')
+parser.add_argument('--creds', dest='creds', default=None, help='Path of Google API credentials .json file')
+parser.add_argument('--test', dest='test', default=None, help='ID or Link of file for test')
+args = parser.parse_args()
+
+if args.creds:
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = args.creds
+if args.test:
+    os.putenv("TEST_ID", args.test)
+if args.link:
+    # TODO: Implement adding link from arguments instead of input option
+    pass
+
+from gdoc import GDoc, LinkChecker
 
 FIELDS = "comments(content,quotedFileContent/value,id,author/displayName,deleted,resolved),nextPageToken"
 DATE_STR = datetime.now().strftime("%-y-%m-%d")
@@ -35,9 +54,14 @@ def main():
         Downloader(df, "yt_link", "n", "timecodes", "quotedFileContent", path)
 
 
-while True:
-    try:
-        main()
-        break
-    except:
-        pass
+# while True:
+#     # TODO: I don't like this construction
+#     main()
+#     # try:
+#     #
+#     #     break
+#     # except Exception as e:
+#     #     print(e)
+
+if __name__ == '__main__':
+    main()

@@ -20,7 +20,7 @@ def guess_lost_indexes(df, field="index_in_file"):
             df.loc[i, field] = neighbours // 2
 
 
-def empty_lists_to_nan(df,fields):
+def empty_lists_to_nan(df, fields):
     df[fields] = df[fields].applymap(lambda l: np.nan if type(l) is list and len(l) < 1 else l)
 
 
@@ -35,8 +35,10 @@ def extract_links(df):
 
 class DataFrame(pd.DataFrame):
     def cleanup(self):
-        # CLEANUP TIME
-        # Flatten unnecessary dictionaries (if dict contains just 1 article)
+        """
+        CLEANUP TIME
+        Flatten unnecessary dictionaries (if dict contains just 1 article)
+        """
         self.author = self.author.map(lambda d: d[list(d.keys())[0]] if type(d) is dict and len(d) == 1 else d)
         self.quotedFileContent = self.quotedFileContent.map(lambda d: d[list(d.keys())[0]] if type(d) is dict and len(d) == 1 else d)
         # Drop deleted and resolved comments

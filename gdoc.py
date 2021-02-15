@@ -18,10 +18,10 @@ with open(CRED_FILE) as app_creds:
 
 
 def read_paragraph_element(element):
-    """Returns the text in the given ParagraphElement.
+    """
+    Returns the text in the given ParagraphElement.
 
-        Args:
-            element: a ParagraphElement from a Google Doc.
+    :param element: a ParagraphElement from a Google Doc.
     """
     text_run = element.get("textRun")
     if not text_run:
@@ -30,11 +30,9 @@ def read_paragraph_element(element):
 
 
 def read_strucutural_elements(elements):
-    """Recurses through a list of Structural Elements to read a document's text where text may be
-        in nested elements.
-
-        Args:
-            elements: a list of Structural Elements.
+    """
+    Recurses through a list of Structural Elements to read a document's text where text may be in nested elements.
+    :param elements: a list of Structural Elements.
     """
     text = ""
     for value in elements:
@@ -86,7 +84,7 @@ class GDoc:
     def get_doc(self):
         # Get comments and full text of GDoc
         try:
-            with build('docs', 'v1', credentials=credentials) as service:
+            with build("docs", "v1", credentials=credentials) as service:
                 self._get_content(service)
             with build("drive", "v3", credentials=credentials) as service:
                 self._get_comments(service)
@@ -100,30 +98,31 @@ class GDoc:
                 self.doc_attempts = 4
 
     def numerate(self, df, content="n", id="id"):
-        """Post indexes of comments as replies in doc.
-
-        df (Pandas dataframe)
-        content (column name, str): content of reply
-        id (column name, str): id of comment
         """
-        bar = Bar('Processing', max=len(df[id]))
+        Post indexes of comments as replies in doc.
+
+        :param df: Pandas dataframe
+        :param content: name of column containing content of reply
+        :param id: name of column containing id of comment
+        """
+        bar = Bar("Processing", max=len(df[id]))
         with build("drive", "v2", credentials=credentials) as service:
             dic = df[[content, id]].to_dict()
             for key in dic[id]:
-                new_reply = {'content': dic[content][key]}
+                new_reply = {"content": dic[content][key]}
                 try:
                     service.replies().insert(fileId=self.file_id, commentId=dic[id][key], body=new_reply).execute()
                 except errors as error:
-                    print('An error occurred: %s' % error)
+                    print("An error occurred: %s" % error)
                 bar.next()
         bar.finish()
 
     def _get_content(self, service):
-        print('Loading file contents... ', end="")
+        print("Loading file contents... ", end="")
         time_start = perf_counter()
         try:
             doc = service.documents().get(documentId=self.file_id).execute()
-            self.content = read_strucutural_elements(doc.get('body').get('content'))
+            self.content = read_strucutural_elements(doc.get("body", {}).get("content", None))
             print(f"{round(perf_counter() - time_start, 4)} seconds")
         except errors as error:
             print(f"\nAn error occurred: {error}")
@@ -150,7 +149,8 @@ class GDoc:
                 break
 
     def find_indexes(self, iterable):
-        """Returns list of indexes of iterable elements in source text.
+        """
+        Returns list of indexes of iterable elements in source text.
         """
         indexes = []
         for i in iterable:
@@ -169,7 +169,7 @@ class LinkChecker:
             print("Following links contain errors (are you sure there are no typos?):\n"+"\n".join(self.errors))
 
     def start(self):
-        with Bar('Checking links...', max=len(self.df[self.field])) as self.bar:
+        with Bar("Checking links...", max=len(self.df[self.field])) as self.bar:
             self.df["responses"] = self.df[self.field].map(self._get_status_code)
 
     def _get_status_code(self, links):
@@ -182,11 +182,12 @@ class LinkChecker:
             for link in links:
                 try:
                     code = requests.get(link).status_code
-                except requests.exceptions as e:
-                    code = e
-                if code > 200:
-                    self.errors.append(f"{code} - {link}")
-                status.append(code)
+                    if code > 200:
+                        self.errors.append(f"{code} - {link}")
+                    status.append(code)
+                except Exception as e:
+                    self.errors.append(f"{e} - {link}")
+                    status.append(e)
         else:
             return None
         return status
