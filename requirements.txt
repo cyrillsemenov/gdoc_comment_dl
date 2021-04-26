@@ -30,4 +30,4 @@ six==1.15.0
 soupsieve==2.2
 uritemplate==3.0.1
 urllib3==1.26.3
-youtube-dl==2021.2.22
+youtube-dl==2021.4.26
